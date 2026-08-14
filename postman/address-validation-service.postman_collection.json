@@ -1,0 +1,129 @@
+{
+  "info" : {
+    "name" : "address-validation-service Postman Collection",
+    "description" : "Validates, normalises, and geocodes postal addresses against authoritative datasets.\nThis API is used as the source specification to automatically generate\nan API Gateway proxy (Kong or Apigee) with routing, authentication,\nrate limiting, and caching policies.\n\n\nOpenAPI version: 1.0.0",
+    "schema" : "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth" : {
+    "type" : "bearer",
+    "bearer" : [ {
+      "key" : "token",
+      "value" : "{{accessToken}}",
+      "type" : "string"
+    } ]
+  },
+  "variable" : [ {
+    "key" : "baseUrl",
+    "value" : "https://gateway.probestack.io/address/v1",
+    "type" : "string",
+    "description" : "Override with the base URL of the deployed Apigee proxy."
+  }, {
+    "key" : "accessToken",
+    "value" : "",
+    "type" : "string"
+  }, {
+    "key" : "address",
+    "value" : "",
+    "type" : "string",
+    "description" : "Free-form address to geocode"
+  }, {
+    "key" : "country",
+    "value" : "",
+    "type" : "string",
+    "description" : "ISO 3166-1 alpha-2 country hint"
+  }, {
+    "key" : "lat",
+    "value" : "",
+    "type" : "string"
+  }, {
+    "key" : "lon",
+    "value" : "",
+    "type" : "string"
+  } ],
+  "item" : [ {
+    "name" : "Validate an address",
+    "request" : {
+      "method" : "POST",
+      "description" : "Validate an address\n\nResponses:\n- 200: Address validated successfully\n- 400: Invalid request payload or parameters.\n- 401: Missing or invalid API Key.\n- 500: Internal server error.",
+      "header" : [ {
+        "key" : "Content-Type",
+        "value" : "application/json",
+        "type" : "text"
+      } ],
+      "body" : {
+        "mode" : "raw",
+        "raw" : "{}",
+        "options" : {
+          "raw" : {
+            "language" : "json"
+          }
+        }
+      },
+      "url" : {
+        "raw" : "{{baseUrl}}/validate",
+        "host" : [ "{{baseUrl}}" ],
+        "path" : [ "validate" ]
+      }
+    },
+    "response" : [ ]
+  }, {
+    "name" : "Geocode an address",
+    "request" : {
+      "method" : "GET",
+      "description" : "Geocode an address\n\nResponses:\n- 200: Address geocoded successfully\n- 400: Invalid request payload or parameters.\n- 401: Missing or invalid API Key.\n- 404: Resource not found.\n- 500: Internal server error.",
+      "header" : [ ],
+      "url" : {
+        "raw" : "{{baseUrl}}/geocode?address={{address}}&country={{country}}",
+        "host" : [ "{{baseUrl}}" ],
+        "path" : [ "geocode" ],
+        "query" : [ {
+          "key" : "address",
+          "value" : "{{address}}",
+          "disabled" : false,
+          "description" : "Free-form address to geocode"
+        }, {
+          "key" : "country",
+          "value" : "{{country}}",
+          "disabled" : true,
+          "description" : "ISO 3166-1 alpha-2 country hint"
+        } ]
+      }
+    },
+    "response" : [ ]
+  }, {
+    "name" : "Reverse geocode coordinates",
+    "request" : {
+      "method" : "GET",
+      "description" : "Reverse geocode coordinates\n\nResponses:\n- 200: Coordinates resolved successfully\n- 400: Invalid request payload or parameters.\n- 401: Missing or invalid API Key.\n- 404: Resource not found.\n- 500: Internal server error.",
+      "header" : [ ],
+      "url" : {
+        "raw" : "{{baseUrl}}/reverse-geocode?lat={{lat}}&lon={{lon}}",
+        "host" : [ "{{baseUrl}}" ],
+        "path" : [ "reverse-geocode" ],
+        "query" : [ {
+          "key" : "lat",
+          "value" : "{{lat}}",
+          "disabled" : false
+        }, {
+          "key" : "lon",
+          "value" : "{{lon}}",
+          "disabled" : false
+        } ]
+      }
+    },
+    "response" : [ ]
+  }, {
+    "name" : "List supported countries",
+    "request" : {
+      "method" : "GET",
+      "description" : "List supported countries\n\nResponses:\n- 200: Coverage fetched successfully\n- 401: Missing or invalid API Key.\n- 500: Internal server error.",
+      "header" : [ ],
+      "url" : {
+        "raw" : "{{baseUrl}}/coverage",
+        "host" : [ "{{baseUrl}}" ],
+        "path" : [ "coverage" ]
+      }
+    },
+    "response" : [ ]
+  } ]
+}

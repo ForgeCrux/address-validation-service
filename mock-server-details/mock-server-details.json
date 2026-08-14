@@ -1,0 +1,92 @@
+{
+  "microserviceId" : "6a7ea109254dc050c6999bc6",
+  "mocks" : [ {
+    "id" : "97e89fd0-e32c-42e2-8d90-4888ffcfc158",
+    "microserviceId" : "6a7ea109254dc050c6999bc6",
+    "specMetadataId" : "6a7ea15fe3a11656ce53587a",
+    "apiSpecName" : "Address Validation Service",
+    "name" : "mock-address-validation-service",
+    "mockServiceName" : "mock-address-validation-service",
+    "mockServerUrl" : "https://forgesphere.probestack.io/mock-api/v1/api/mocks/mock-e31317ed",
+    "responseLatencyMs" : 0,
+    "mockUrl" : "mock-e31317ed",
+    "isPrivate" : true,
+    "delayMs" : 0,
+    "requestCount" : 4,
+    "createdAt" : "2026-08-14T05:02:35.515Z",
+    "updatedAt" : "2026-08-14T05:02:40.834Z",
+    "endpoints" : [ {
+      "id" : "37757c05-6477-40a1-b510-84398288d40f",
+      "mockId" : "97e89fd0-e32c-42e2-8d90-4888ffcfc158",
+      "path" : "/coverage",
+      "method" : "GET",
+      "responseStatus" : 200,
+      "responseHeaders" : {
+        "Content-Type" : "application/json"
+      },
+      "responseBody" : "[{\"country\":\"US\",\"countryName\":\"United States\",\"datasetVersion\":\"USPS-2026-07\",\"lastRefreshedAt\":\"2024-01-01T00:00:00Z\",\"supportsGeocoding\":true}]",
+      "delayMs" : 0,
+      "isActive" : true,
+      "requestBodySample" : null,
+      "validationMode" : "NONE",
+      "validationSchema" : null,
+      "validateMethod" : true,
+      "createdAt" : "2026-08-14T05:02:35.560Z",
+      "updatedAt" : "2026-08-14T05:02:35.560Z"
+    }, {
+      "id" : "192a8f39-210e-4fdc-a9c1-24a74390d749",
+      "mockId" : "97e89fd0-e32c-42e2-8d90-4888ffcfc158",
+      "path" : "/geocode",
+      "method" : "GET",
+      "responseStatus" : 200,
+      "responseHeaders" : {
+        "Content-Type" : "application/json"
+      },
+      "responseBody" : "{\"query\":\"123 Main Street, New York\",\"matchQuality\":\"ROOFTOP\",\"latitude\":40.750742,\"longitude\":-73.993439,\"address\":{\"line1\":\"123 MAIN ST\",\"line2\":\"APT 4B\",\"city\":\"NEW YORK\",\"state\":\"NY\",\"postalCode\":\"10001-1234\",\"country\":\"US\",\"latitude\":40.750742,\"longitude\":-73.993439}}",
+      "delayMs" : 0,
+      "isActive" : true,
+      "requestBodySample" : null,
+      "validationMode" : "NONE",
+      "validationSchema" : null,
+      "validateMethod" : true,
+      "createdAt" : "2026-08-14T05:02:35.545Z",
+      "updatedAt" : "2026-08-14T05:02:35.546Z"
+    }, {
+      "id" : "859ad07d-0e20-477b-bcaa-e3a5c136adc6",
+      "mockId" : "97e89fd0-e32c-42e2-8d90-4888ffcfc158",
+      "path" : "/reverse-geocode",
+      "method" : "GET",
+      "responseStatus" : 200,
+      "responseHeaders" : {
+        "Content-Type" : "application/json"
+      },
+      "responseBody" : "{\"line1\":\"123 MAIN ST\",\"line2\":\"APT 4B\",\"city\":\"NEW YORK\",\"state\":\"NY\",\"postalCode\":\"10001-1234\",\"country\":\"US\",\"latitude\":40.750742,\"longitude\":-73.993439}",
+      "delayMs" : 0,
+      "isActive" : true,
+      "requestBodySample" : null,
+      "validationMode" : "NONE",
+      "validationSchema" : null,
+      "validateMethod" : true,
+      "createdAt" : "2026-08-14T05:02:35.553Z",
+      "updatedAt" : "2026-08-14T05:02:35.553Z"
+    }, {
+      "id" : "394e26d9-07b3-42aa-bb31-b857a7f5acf3",
+      "mockId" : "97e89fd0-e32c-42e2-8d90-4888ffcfc158",
+      "path" : "/validate",
+      "method" : "POST",
+      "responseStatus" : 200,
+      "responseHeaders" : {
+        "Content-Type" : "application/json"
+      },
+      "responseBody" : "{\"valid\":true,\"confidence\":0.97,\"normalised\":{\"line1\":\"123 MAIN ST\",\"line2\":\"APT 4B\",\"city\":\"NEW YORK\",\"state\":\"NY\",\"postalCode\":\"10001-1234\",\"country\":\"US\",\"latitude\":40.750742,\"longitude\":-73.993439},\"corrections\":[\"postalCode corrected from 10011 to 10001\"],\"deliverable\":true}",
+      "delayMs" : 0,
+      "isActive" : true,
+      "requestBodySample" : "{\"line1\":\"123 Main Street\",\"line2\":\"Apt 4B\",\"city\":\"New York\",\"state\":\"NY\",\"postalCode\":\"10001\",\"country\":\"US\"}",
+      "validationMode" : "NONE",
+      "validationSchema" : null,
+      "validateMethod" : true,
+      "createdAt" : "2026-08-14T05:02:35.538Z",
+      "updatedAt" : "2026-08-14T05:02:35.538Z"
+    } ]
+  } ]
+}
