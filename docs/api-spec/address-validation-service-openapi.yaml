@@ -1,0 +1,494 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: geo@probestack.io
+    name: Location Services Team
+  description: |
+    Validates, normalises, and geocodes postal addresses against authoritative datasets.
+    This API is used as the source specification to automatically generate
+    an API Gateway proxy (Kong or Apigee) with routing, authentication,
+    rate limiting, and caching policies.
+  title: Address Validation Service
+  version: 1.0.0
+  x-proxy-config:
+    upstream-url: https://address-service.probestack.io
+    service-name: address-validation-gateway
+    rate-limit: 400/minute
+    cors-enabled: true
+    retries: 3
+servers:
+- description: Production Gateway
+  url: https://gateway.probestack.io/address/v1
+- description: Local Gateway
+  url: http://localhost:8000/address/v1
+security:
+- ApiKeyAuth: []
+tags:
+- description: Validate and normalise addresses
+  name: Validation
+- description: Convert between addresses and coordinates
+  name: Geocoding
+- description: Supported country and dataset metadata
+  name: Coverage
+paths:
+  /validate:
+    post:
+      description: Checks an address against the postal authority dataset and returns
+        a normalised form with a confidence score.
+      operationId: validateAddress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateAddressRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+          description: Address validated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Invalid request payload or parameters.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Missing or invalid API Key.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error.
+      summary: Validate an address
+      tags:
+      - Validation
+      x-proxy-route:
+        methods:
+        - POST
+        plugins:
+        - name: cors
+        - name: rate-limiting
+          config:
+            minute: 400
+        - name: proxy-cache
+          config:
+            cache_ttl: 86400
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Validation
+  /geocode:
+    get:
+      description: Returns latitude and longitude for a free-form address string.
+        Results are cached for 24 hours.
+      operationId: geocodeAddress
+      parameters:
+      - description: Free-form address to geocode
+        explode: true
+        in: query
+        name: address
+        required: true
+        schema:
+          minLength: 3
+          type: string
+        style: form
+      - description: ISO 3166-1 alpha-2 country hint
+        explode: true
+        in: query
+        name: country
+        required: false
+        schema:
+          maxLength: 2
+          minLength: 2
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeocodeResult"
+          description: Address geocoded successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Invalid request payload or parameters.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Missing or invalid API Key.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Resource not found.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error.
+      summary: Geocode an address
+      tags:
+      - Geocoding
+      x-proxy-route:
+        methods:
+        - GET
+        plugins:
+        - name: cors
+        - name: proxy-cache
+          config:
+            cache_ttl: 86400
+      x-accepts: application/json
+      x-tags:
+      - tag: Geocoding
+  /reverse-geocode:
+    get:
+      description: Returns the nearest postal address for a latitude and longitude
+        pair.
+      operationId: reverseGeocode
+      parameters:
+      - explode: true
+        in: query
+        name: lat
+        required: true
+        schema:
+          format: double
+          maximum: 90
+          minimum: -90
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: lon
+        required: true
+        schema:
+          format: double
+          maximum: 180
+          minimum: -180
+          type: number
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NormalisedAddress"
+          description: Coordinates resolved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Invalid request payload or parameters.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Missing or invalid API Key.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Resource not found.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error.
+      summary: Reverse geocode coordinates
+      tags:
+      - Geocoding
+      x-proxy-route:
+        methods:
+        - GET
+        plugins:
+        - name: cors
+        - name: proxy-cache
+          config:
+            cache_ttl: 43200
+      x-accepts: application/json
+      x-tags:
+      - tag: Geocoding
+  /coverage:
+    get:
+      description: Returns the countries covered by the validation datasets and the
+        freshness of each dataset.
+      operationId: listCoverage
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CoverageEntry"
+                type: array
+          description: Coverage fetched successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Missing or invalid API Key.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error.
+      summary: List supported countries
+      tags:
+      - Coverage
+      x-proxy-route:
+        methods:
+        - GET
+        plugins:
+        - name: cors
+        - name: proxy-cache
+          config:
+            cache_ttl: 3600
+      x-accepts: application/json
+      x-tags:
+      - tag: Coverage
+components:
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Invalid request payload or parameters.
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Missing or invalid API Key.
+    NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Resource not found.
+    InternalError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Internal server error.
+  schemas:
+    ValidateAddressRequest:
+      example:
+        country: US
+        city: New York
+        postalCode: "10001"
+        state: NY
+        line2: Apt 4B
+        line1: 123 Main Street
+      properties:
+        line1:
+          example: 123 Main Street
+          type: string
+        line2:
+          example: Apt 4B
+          type: string
+        city:
+          example: New York
+          type: string
+        state:
+          example: NY
+          type: string
+        postalCode:
+          example: "10001"
+          type: string
+        country:
+          description: ISO 3166-1 alpha-2 country code
+          example: US
+          maxLength: 2
+          minLength: 2
+          type: string
+      required:
+      - country
+      - line1
+      type: object
+    ValidationResult:
+      example:
+        valid: true
+        normalised:
+          country: US
+          city: NEW YORK
+          postalCode: 10001-1234
+          latitude: 40.750742
+          state: NY
+          line2: APT 4B
+          line1: 123 MAIN ST
+          longitude: -73.993439
+        corrections:
+        - postalCode corrected from 10011 to 10001
+        confidence: 0.97
+        deliverable: true
+      properties:
+        valid:
+          example: true
+          type: boolean
+        confidence:
+          example: 0.97
+          format: double
+          maximum: 1
+          minimum: 0
+          type: number
+        normalised:
+          $ref: "#/components/schemas/NormalisedAddress"
+        corrections:
+          example:
+          - postalCode corrected from 10011 to 10001
+          items:
+            type: string
+          type: array
+        deliverable:
+          example: true
+          type: boolean
+      type: object
+    NormalisedAddress:
+      example:
+        country: US
+        city: NEW YORK
+        postalCode: 10001-1234
+        latitude: 40.750742
+        state: NY
+        line2: APT 4B
+        line1: 123 MAIN ST
+        longitude: -73.993439
+      properties:
+        line1:
+          example: 123 MAIN ST
+          type: string
+        line2:
+          example: APT 4B
+          type: string
+        city:
+          example: NEW YORK
+          type: string
+        state:
+          example: NY
+          type: string
+        postalCode:
+          example: 10001-1234
+          type: string
+        country:
+          example: US
+          type: string
+        latitude:
+          example: 40.750742
+          format: double
+          type: number
+        longitude:
+          example: -73.993439
+          format: double
+          type: number
+      type: object
+    GeocodeResult:
+      example:
+        address:
+          country: US
+          city: NEW YORK
+          postalCode: 10001-1234
+          latitude: 40.750742
+          state: NY
+          line2: APT 4B
+          line1: 123 MAIN ST
+          longitude: -73.993439
+        matchQuality: ROOFTOP
+        query: "123 Main Street, New York"
+        latitude: 40.750742
+        longitude: -73.993439
+      properties:
+        query:
+          example: "123 Main Street, New York"
+          type: string
+        matchQuality:
+          enum:
+          - EXACT
+          - ROOFTOP
+          - INTERPOLATED
+          - APPROXIMATE
+          example: ROOFTOP
+          type: string
+        latitude:
+          example: 40.750742
+          format: double
+          type: number
+        longitude:
+          example: -73.993439
+          format: double
+          type: number
+        address:
+          $ref: "#/components/schemas/NormalisedAddress"
+      type: object
+    CoverageEntry:
+      example:
+        country: US
+        datasetVersion: USPS-2026-07
+        lastRefreshedAt: 2000-01-23T04:56:07.000+00:00
+        countryName: United States
+        supportsGeocoding: true
+      properties:
+        country:
+          example: US
+          type: string
+        countryName:
+          example: United States
+          type: string
+        datasetVersion:
+          example: USPS-2026-07
+          type: string
+        lastRefreshedAt:
+          format: date-time
+          type: string
+        supportsGeocoding:
+          example: true
+          type: boolean
+      type: object
+    ErrorResponse:
+      properties:
+        status:
+          example: 400
+          type: integer
+        errorCode:
+          example: UNSUPPORTED_COUNTRY
+          type: string
+        message:
+          example: Validation is not available for the requested country
+          type: string
+        timestamp:
+          format: date-time
+          type: string
+        path:
+          example: /address/v1/validate
+          type: string
+      required:
+      - message
+      - status
+      type: object
+  securitySchemes:
+    ApiKeyAuth:
+      description: API Key required for all gateway requests.
+      in: header
+      name: X-API-Key
+      type: apiKey
